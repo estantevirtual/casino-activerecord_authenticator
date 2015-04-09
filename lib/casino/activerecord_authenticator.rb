@@ -65,8 +65,10 @@ class CASino::ActiveRecordAuthenticator
 
   def valid_password?(password, password_from_database)
     return false if password_from_database.blank?
-    magic = password_from_database.split('$')[1]
+    magic = parse_password_from_database(password_from_database)
     case magic
+    when /\A[0-9a-f]{40}\z/
+      valid_password_with_sha1(password, password_from_database)
     when /\A2a?\z/
       valid_password_with_bcrypt?(password, password_from_database)
     when /\AH\z/, /\AP\z/
@@ -74,6 +76,14 @@ class CASino::ActiveRecordAuthenticator
     else
       valid_password_with_unix_crypt?(password, password_from_database)
     end
+  end
+
+  def parse_password_from_database(password_from_database)
+    password_from_database.split('$')[1] || password_from_database
+  end
+
+  def valid_password_with_sha1(password, password_from_database)
+    Digest::SHA1.hexdigest(password) == password_from_database
   end
 
   def valid_password_with_bcrypt?(password, password_from_database)

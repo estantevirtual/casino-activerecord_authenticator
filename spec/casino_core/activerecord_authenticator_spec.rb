@@ -152,6 +152,20 @@ describe CASino::ActiveRecordAuthenticator do
       end
     end
 
+    context 'support for SHA1' do
+      before do
+        user_class.create!(
+          username: 'roland',
+          password: '9767573d0e42587b425e3f72c86deea9846150a5', # password: deschain
+          mail_address: 'mail@example.org'
+        )
+      end
+
+      it 'is able to handle sha1 password hashes' do
+        subject.validate('roland', 'deschain').should be_instance_of(Hash)
+      end
+    end
+
     context 'support for bcrypt' do
       before do
         user_class.create!(
